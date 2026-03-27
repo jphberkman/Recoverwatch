@@ -16,7 +16,12 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '2mb' }));
 
+// Ensure uploads directory exists
 const uploadsRoot = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsRoot)) fs.mkdirSync(uploadsRoot, { recursive: true });
+const itemsUploadDir = path.join(uploadsRoot, 'items');
+if (!fs.existsSync(itemsUploadDir)) fs.mkdirSync(itemsUploadDir, { recursive: true });
+
 app.use('/uploads', express.static(uploadsRoot));
 
 app.use('/api/items', itemsRouter);
