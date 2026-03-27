@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python3", "gcc", "pkg-config", "vips"]
+nixPkgs = ["nodejs_18", "npm", "python3", "gcc", "pkg-config", "vips"]
 
 [phases.install]
 cmds = ["npm install --build-from-source", "cd client && npm install && npm run build"]
