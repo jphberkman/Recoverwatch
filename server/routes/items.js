@@ -1,8 +1,14 @@
 const express = require('express');
 const multer = require('multer');
-const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+
+let sharp;
+try {
+  sharp = require('sharp');
+} catch {
+  console.warn('sharp not available — photo resizing disabled');
+}
 const {
   createItem,
   getItem,
@@ -158,17 +164,19 @@ router.post('/', upload.array('photos', 3), async (req, res) => {
     const photos = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        // Resize image
-        const resizedPath = file.path.replace(/(\.[^.]+)$/, '_resized$1');
-        await sharp(file.path)
-          .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 85 })
-          .toFile(resizedPath);
-
-        // Replace original with resized
-        fs.unlinkSync(file.path);
-        fs.renameSync(resizedPath, file.path);
-
+        if (sharp) {
+          try {
+            const resizedPath = file.path.replace(/(\.[^.]+)$/, '_resized$1');
+            await sharp(file.path)
+              .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+              .jpeg({ quality: 85 })
+              .toFile(resizedPath);
+            fs.unlinkSync(file.path);
+            fs.renameSync(resizedPath, file.path);
+          } catch (e) {
+            console.warn('sharp resize failed, using original:', e.message);
+          }
+        }
         photos.push(`uploads/items/${path.basename(file.path)}`);
       }
     }
@@ -216,13 +224,19 @@ router.put('/:id', upload.array('photos', 3), async (req, res) => {
     if (req.files && req.files.length > 0) {
       const newPhotos = [];
       for (const file of req.files) {
-        const resizedPath = file.path.replace(/(\.[^.]+)$/, '_resized$1');
-        await sharp(file.path)
-          .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 85 })
-          .toFile(resizedPath);
-        fs.unlinkSync(file.path);
-        fs.renameSync(resizedPath, file.path);
+        if (sharp) {
+          try {
+            const resizedPath = file.path.replace(/(\.[^.]+)$/, '_resized$1');
+            await sharp(file.path)
+              .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+              .jpeg({ quality: 85 })
+              .toFile(resizedPath);
+            fs.unlinkSync(file.path);
+            fs.renameSync(resizedPath, file.path);
+          } catch (e) {
+            console.warn('sharp resize failed, using original:', e.message);
+          }
+        }
         newPhotos.push(`uploads/items/${path.basename(file.path)}`);
       }
       updates.photos = [...existing.photos, ...newPhotos];
