@@ -28,18 +28,16 @@ app.get('/api/health', (req, res) => {
 });
 
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
-if (fs.existsSync(path.join(clientDist, 'index.html'))) {
-  app.use(express.static(clientDist));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
-    res.sendFile(path.join(clientDist, 'index.html'), (err) => {
-      if (err) next();
-    });
+app.use(express.static(clientDist));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+  res.sendFile(path.join(clientDist, 'index.html'), (err) => {
+    if (err) next();
   });
-}
+});
 
-app.listen(PORT, () => {
-  console.log(`RecoverWatch API listening on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`RecoverWatch API listening on 0.0.0.0:${PORT}`);
 });
 
 function msForFrequency(freq) {
